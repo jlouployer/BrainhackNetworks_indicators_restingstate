@@ -26,7 +26,7 @@ from math import sqrt
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation
 from keras.layers.recurrent import LSTM
-import pandas_datareader.data as web
+#import pandas_datareader.data as web
 from scipy import stats
 
 # In[103]:
@@ -103,10 +103,10 @@ def Bollinger_bands(x,N,alpha,K):
 
 
 # load the data:
-df     = pd.read_csv('./BrainhackNetworks_indicators_restingstate-master/datasets/fMRI/day1/100307.csv',header=None)
+df     = pd.read_csv('../datasets/fMRI/day1/100307.csv',header=None)
 data   = df.values
 Nvars  = data.shape[1]
-labels_Glasser  = pd.read_csv('./BrainhackNetworks_indicators_restingstate-master/datasets/fMRI/labels_Glasser.csv',header=None)[0].tolist()
+labels_Glasser  = pd.read_csv('../datasets/fMRI/labels_Glasser.csv',header=None)[0].tolist()
 df.columns = labels_Glasser
 TR     = 0.72 #[s]
 
@@ -223,13 +223,26 @@ plt.show()
 
 
 
+# Correlation between different areas
+
+
+plt.figure(figsize=(10,8))
+plt.plot(data[:,1], data[:,2], color='k', label='data')  # np.arange(N)*TR
+plt.legend()
+plt.xlabel('ROI0')
+plt.ylabel('ROI1')
+#plt.xlim([0, N*TR*0.25]) #zoom inot first 25% of the chart
+plt.title('Correlation between signals from different brain areas')
+plt.show()
+
+
 
 
 # In[Data Preperation]
 
 seq_len = 22
 nb_features = 1#len(df.columns)
-data = df.loc[:,['V1','V2']].as_matrix() 
+data = df.loc[:,'V1'].as_matrix() 
 nb_features = data.shape[1]#1#len(df.columns)
 sequence_length = seq_len + 1 # index starting from 0
 result = []
@@ -258,9 +271,9 @@ neurons = [128, 128, 32, 1]
 
 model = []
 model = Sequential()
-model.add(LSTM(units=neurons[0], return_sequences=True, input_shape=(X_train.shape[1],X_train.shape[2])))
+model.add(LSTM(units=neurons[0], return_sequences=True, input_shape=(X_train.shape[1]))) # ,X_train.shape[2]
 model.add(Dropout(d))
-model.add(LSTM(neurons[1], return_sequences=False, input_shape=(X_train.shape[1],X_train.shape[2])))
+model.add(LSTM(neurons[1], return_sequences=False, input_shape=(X_train.shape[1])))  # ,X_train.shape[2]
 model.add(Dropout(d))
 model.add(Dense(neurons[2],kernel_initializer="uniform",activation='relu'))        
 model.add(Dense(neurons[3],kernel_initializer="uniform",activation='linear'))
@@ -272,7 +285,7 @@ model.summary()
 
 # In[Model Fitting]
 
-model.fit(X_train, y_train, batch_size=512, epochs=50, validation_split=0.1, verbose=1)
+model.fit(X_train, y_train, batch_size=512, epochs=10, validation_split=0.1, verbose=1)
 
 # In[Results]
 
@@ -309,62 +322,3 @@ plt.show()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# In[]
-import pandas as pd
-
-df = pd.read_csv('/home/pouya/Downloads/cog_mat_logs/NBACK/COF004_C2_TWOBACK_20160809T171012.log',header=None, skiprows = 14)
-
-data = []
-import re
-regex = re.compile(r'\d+')
-with open('/home/pouya/Downloads/cog_mat_logs/NBACK/COF004_C2_TWOBACK_20160809T171012.log') as f:
-    for line in f:
-        result = regex.search(line)
-        data.append(str(result))   
